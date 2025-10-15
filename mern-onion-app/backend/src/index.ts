@@ -1,13 +1,13 @@
-import express from 'express';
 import mongoose from 'mongoose';
 import userRoutes from './api/routes/userRoutes';
 import { config } from './config';
+import app from './infrastructure/http/express';
+import keuzeModuleRoutes from './api/routes/keuzeModuleRoutes';
 
-const app = express();
 const PORT = config.port || 5000;
 
-app.use(express.json());
 app.use('/api', userRoutes);
+app.use('/api/keuzemodules', keuzeModuleRoutes);
 
 mongoose.connect(config.db.uri, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {

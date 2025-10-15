@@ -2,72 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* app color variables (default) */
+:root{
+  --app-bg: #ffffff;
+  --app-surface: #ffffff;
+  --app-text: #111827;
+  --app-muted: #6b7280;
+  --app-accent: #2563eb;
+  --app-success: #16a34a;
+  --app-error: #dc2626;
+}
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* dark mode overrides */
+html.dark{
+  --app-bg: #0f172a;
+  --app-surface: #111827;
+  --app-text: #f8fafc;
+  --app-muted: #9ca3af;
+  --app-accent: #60a5fa;
+  --app-success: #22c55e;
+  --app-error: #f87171;
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+/* colorblind-friendly overrides: duidelijk afwijkend palette (blauw/oranje) */
+html.colorblind {
+  --app-bg: #fffaf0;
+  --app-surface: #fff7ed;
+  --app-text: #0b1220;
+  --app-muted: #5b6470;
+  --app-accent: #0b5fff;
+  --app-success: #ff8a3d;
+  --app-error: #b33a3a;
+}
+
+/* apply app-level background + text */
+html, body, #root { height: 100%; }
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+/* helper classes */
+.app-surface { background-color: var(--app-surface); color: var(--app-text); }
+.app-card { background-color: var(--app-surface); color: var(--app-text); }
+.app-muted { color: var(--app-muted); }
+.app-accent { color: var(--app-accent); }
+.app-accent-bg { background-color: var(--app-accent); color: #fff; }
+.app-success-bg { background-color: var(--app-success); color: #fff; }
+.app-error-bg { background-color: var(--app-error); color: #fff; }
 
-body {
+/* keep Tailwind bg-gray-50 visually consistent with surface */
+.bg-gray-50 { background-color: var(--app-surface) !important; }
+
+/* sr-only focus reveal (skip link) */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.sr-only:focus,
+.sr-only:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  background: var(--bg, transparent); /* Tailwind utilities remain usable */
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  z-index: 9999;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+/* focus-visible */
+:focus { outline: none; }
+:focus-visible { outline: 3px solid rgba(37,99,235,0.18); outline-offset: 2px; }
