@@ -11,6 +11,7 @@ import KeuzeModuleDetail from './pages/KeuzeModuleDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyFavorites from './pages/MyFavorites';
+import About from './pages/About';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
                   <Route path="/keuzemodules/:id" element={<KeuzeModuleDetail />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/favorites" element={<MyFavorites />} />
                 </Route>
               </Routes>

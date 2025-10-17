@@ -67,6 +67,7 @@ export const Header: React.FC = () => {
           <Link to="/" className="text-xl font-semibold app-accent">{t('app.name')}</Link>
           <nav className="hidden sm:flex items-center space-x-4">
             <NavLink to="/keuzemodules" className={({ isActive }) => (isActive ? 'app-accent' : 'app-muted')}>{t('header.keuzemodules')}</NavLink>
+            <NavLink to="/about" className={({ isActive }) => (isActive ? 'app-accent' : 'app-muted')}>{t('header.about')}</NavLink>
           </nav>
         </div>
 

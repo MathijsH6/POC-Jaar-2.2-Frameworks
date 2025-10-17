@@ -18,6 +18,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'header.lang': 'Taal',
     'header.toggle_theme_on': 'Schakel donkere modus aan',
     'header.toggle_theme_off': 'Schakel donkere modus uit',
+    'header.about': 'Over',
 
     'login.title': 'Login',
     'login.subtitle': 'Log in om verder te gaan',
@@ -78,7 +79,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'home.accessibility.title': 'Toegankelijkheid & gebruik',
     'home.accessibility.tips_summary': 'Tips voor schermlezers en toetsenbordgebruik',
     'home.accessibility.p1': 'Gebruik de Tab-toets om door interactieve elementen te navigeren. De site ondersteunt een "Skip to main content" link die verschijnt zodra je tabt.',
-    'home.accessibility.p2': 'Voor Windows: NVDA of Narrator werkt goed. Start de schermlezer en navigeer met Tab/Enter. NVDA leest links en headings zodat je snel door de pagina kunt springen.',
+    'home.accessibility.p2': 'Voor Windows: (Druk op Windows-logo + ctrl + Enter) NVDA of Narrator werkt goed. Start de schermlezer en navigeer met Tab/Enter. NVDA leest links en headings zodat je snel door de pagina kunt springen.',
     'home.accessibility.p3': 'Voor macOS: gebruik VoiceOver (Cmd+F5) en navigeer met de VoiceOver-toetsen of Tab. Headings en landmark (main) zijn aanwezig om snel te navigeren.',
     'home.accessibility.p4': 'Modal/overlay (bijv. vergelijken) zet focus automatisch in het dialoogvenster en sluit met Escape. Gebruik Enter/Space om acties te activeren.',
     'home.accessibility.p5': 'Taal wissel en thema (licht/donker) vind je rechtsboven in de header; deze staan ook in hetzelfde focuspad als andere knoppen.',
@@ -103,6 +104,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'header.lang': 'Language',
     'header.toggle_theme_on': 'Enable dark mode',
     'header.toggle_theme_off': 'Disable dark mode',
+    'header.about': 'About',
 
     'login.title': 'Login',
     'login.subtitle': 'Sign in to continue',
@@ -163,7 +165,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'home.accessibility.title': 'Accessibility & usage',
     'home.accessibility.tips_summary': 'Tips for screen readers and keyboard users',
     'home.accessibility.p1': 'Use the Tab key to move between interactive elements. The site supports a "Skip to main content" link that appears when you tab.',
-    'home.accessibility.p2': 'On Windows: NVDA or Narrator work well. Start the screen reader and navigate with Tab/Enter. NVDA announces links and headings so you can jump quickly.',
+    'home.accessibility.p2': 'On Windows: (Press Windows-logo + Ctrl + Enter) NVDA or Narrator work well. Start the screen reader and navigate with Tab/Enter. NVDA announces links and headings so you can jump quickly.',
     'home.accessibility.p3': 'On macOS: use VoiceOver (Cmd+F5) and navigate with VoiceOver keys or Tab. Headings and the main landmark are present to jump quickly.',
     'home.accessibility.p4': 'Modal/overlay (e.g. compare) sets focus inside the dialog and closes with Escape. Use Enter/Space to activate actions.',
     'home.accessibility.p5': 'Language switch and theme (light/dark) are in the top-right header; they are in the same focus order as other controls.',
