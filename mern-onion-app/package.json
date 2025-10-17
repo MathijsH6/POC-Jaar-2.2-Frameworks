@@ -4,13 +4,9 @@
   "description": "A MERN stack application following Onion architecture.",
   "main": "backend/src/index.ts",
   "scripts": {
-    "start": "node backend/src/index.js",
-    "dev": "nodemon backend/src/index.ts",
-    "build": "tsc -p backend/tsconfig.json",
-    "test": "jest",
-    "install": "cd backend && npm install && cd ../frontend && npm install",
-    "buildazure": "cd frontend && npm run build",
-    "startazure": "cd backend && npm start"
+    "postinstall": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
   },
   "dependencies": {
     "express": "^4.17.1",
