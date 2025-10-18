@@ -25,17 +25,30 @@ jobs:
           if [ -d "./frontendd" ]; then
             echo "frontend=frontendd" >> $GITHUB_OUTPUT
           else
-            # try to find a folder named frontendd within few levels
             dir=$(find . -maxdepth 4 -type d -name "frontendd" -print -quit)
             if [ -n "$dir" ]; then
-              # normalize to remove leading ./ if present
               dir=${dir#./}
               echo "frontend=$dir" >> $GITHUB_OUTPUT
             else
               echo "No frontendd directory found. Listing repo for diagnosis:"
-              find . -maxdepth 3 -type d -print
-              echo "--- list files ---"
-              ls -la
+              find . -maxdepth 4 -type d -print
+              exit 1
+            fi
+          fi
+
+      - name: Locate backend directory
+        id: find-backend
+        run: |
+          if [ -d "./backend" ]; then
+            echo "backend=backend" >> $GITHUB_OUTPUT
+          else
+            dir=$(find . -maxdepth 4 -type d -name "backend" -print -quit)
+            if [ -n "$dir" ]; then
+              dir=${dir#./}
+              echo "backend=$dir" >> $GITHUB_OUTPUT
+            else
+              echo "No backend directory found. Listing repo for diagnosis:"
+              find . -maxdepth 4 -type d -print
               exit 1
             fi
           fi
@@ -50,7 +63,6 @@ jobs:
         run: |
           echo "Building frontend in: $PWD"
           npm ci
-          # Ensure VITE_API_URL is provided as a repo secret
           if [ -z "${VITE_API_URL}" ]; then
             echo "VITE_API_URL not provided as secret; continuing but check if this is intended"
           fi
@@ -58,24 +70,27 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
-      - name: Build backend (TypeScript)
-        working-directory: ./backend
+      - name: Build backend (TypeScript / Node)
+        working-directory: ${{ steps.find-backend.outputs.backend }}
         run: |
           echo "Building backend in: $PWD"
           npm ci
-          npm run build || echo "no backend build script or build succeeded without special step"
+          # run build if defined, otherwise continue
+          npm run build || echo "no backend build script or build completed without special step"
 
       - name: Package site for Azure
         run: |
-          # verify frontend build exists at discovered path
           FRONTEND_DIR=${{ steps.find-frontend.outputs.frontend }}
+          BACKEND_DIR=${{ steps.find-backend.outputs.backend }}
           echo "Frontend dir: $FRONTEND_DIR"
+          echo "Backend dir: $BACKEND_DIR"
           if [ ! -d "$FRONTEND_DIR/dist" ]; then
             echo "frontend build not found at $FRONTEND_DIR/dist"
             ls -la "$FRONTEND_DIR" || true
             exit 1
           fi
-          zip -r deploy.zip backend "$FRONTEND_DIR"
+          # create zip containing backend and frontend build folder
+          zip -r deploy.zip "$BACKEND_DIR" "$FRONTEND_DIR"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
