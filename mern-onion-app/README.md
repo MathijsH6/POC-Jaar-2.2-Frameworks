@@ -1,130 +1,99 @@
-# MERN Onion Architecture Project
+# MERN Onion Architecture — Proof of Concept
 
-This project is a MERN stack application that follows the Onion architecture pattern. It is structured to separate concerns and promote maintainability.
+Korte samenvatting
 
-## Project Structure
+- Full‑stack POC gebouwd met Node/Express (backend) + TypeScript + MongoDB (Atlas) + Vite + React (frontend).
+- Opgezet volgens Onion‑architecture principes: scheiding van domain, application (services), infrastructure (persistence, http) en presentation (frontend).
+- Doel: browsen, zoeken en bewaren van keuzemodules; thema's, toegankelijkheid en favorieten aanwezig.
 
-```
-mern-onion-app
-├── backend
-│   ├── src
-│   │   ├── index.ts
-│   │   ├── config
-│   │   │   └── index.ts
-│   │   ├── api
-│   │   │   ├── controllers
-│   │   │   │   └── userController.ts
-│   │   │   └── routes
-│   │   │       └── userRoutes.ts
-│   │   ├── application
-│   │   │   ├── services
-│   │   │   │   └── userService.ts
-│   │   │   └── dto
-│   │   │       └── userDTO.ts
-│   │   ├── domain
-│   │   │   ├── entities
-│   │   │   │   └── User.ts
-│   │   │   └── interfaces
-│   │   │       └── IUserRepository.ts
-│   │   ├── infrastructure
-│   │   │   ├── persistence
-│   │   │   │   └── mongoose
-│   │   │   │       ├── models
-│   │   │   │       │   └── user.model.ts
-│   │   │   │       └── repositories
-│   │   │   │           └── UserRepository.ts
-│   │   │   └── http
-│   │   │       └── express.ts
-│   │   └── shared
-│   │       └── utils.ts
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── .env.example
-├── frontend
-│   ├── src
-│   │   ├── index.tsx
-│   │   ├── App.tsx
-│   │   ├── pages
-│   │   │   └── Home.tsx
-│   │   ├── components
-│   │   │   └── Header.tsx
-│   │   ├── services
-│   │   │   └── api.ts
-│   │   └── types
-│   │       └── index.ts
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── .env.example
-├── docker-compose.yml
-├── .gitignore
-├── package.json
-├── tsconfig.json
-└── README.md
-```
+Quick links
 
-## Getting Started
+- Frontend folder: `frontendd/`
+- Backend folder: `backend/`
+- Startpunt backend source: `backend/src/index.ts`
+- Frontend entry: `frontendd/src/main.tsx`
 
-### Prerequisites
+Belangrijkste features
 
-- Node.js
-- MongoDB
-- Docker (optional, for using docker-compose)
+- Authenticatie (register / login / JWT)
+- Keuzemodules: list, detail, filters
+- Favorieten per gebruiker
+- Theming (light / dark / colorblind)
+- Frontend kan door de backend geserveerd worden (single host) of los gehost op static hosting.
 
-### Installation
+Locales / Talen
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd mern-onion-app
-   ```
+- I18n aanwezig (Nederlands & Engels). Standaard talen in `frontendd/src/contexts/I18nContext.tsx`.
 
-2. Install backend dependencies:
-   ```
-   cd backend
-   npm install
-   ```
+Snelstart — lokaal (ontwikkelomgeving)
 
-3. Install frontend dependencies:
-   ```
-   cd frontend
-   npm install
-   ```
+1. Backend dependencies installeren
 
-### Configuration
+   - Open terminal in `backend/`
+   - npm install
 
-- Copy the `.env.example` files in both `backend` and `frontend` directories to `.env` and fill in the necessary environment variables.
+2. Frontend dependencies installeren
 
-### Running the Application
+   - Open terminal in `frontendd/`
+   - npm install
 
-1. Start the backend server:
-   ```
-   cd backend
-   npm start
-   ```
+3. Voor development: start frontend en backend los
 
-2. Start the frontend application:
-   ```
-   cd frontend
-   npm start
-   ```
+   - Backend (development): vanuit `backend/`:
+     - npm run dev (of npm start afhankelijk van package.json)
+   - Frontend (Vite): vanuit `frontendd/`:
+     - npm run dev
 
-### Docker Setup
+4. Seed sample data (optioneel)
+   - Er is een seed script: `backend/src/scripts/seedKeuzeModules.ts`
+   - Draai dit lokaal via node/ts-node als gewenst (voorbereid je local MongoDB / Atlas connection).
 
-If you prefer to use Docker, you can run the application using docker-compose:
+Build & run single host (backend serveert frontend)
+
+1. Build frontend:
+
+   - from repo root or inside `frontendd/`:
+     - npm run build
+   - Dit produceert `frontendd/dist`
+
+2. Build/compile backend (TypeScript):
+
+   - from `backend/`:
+     - npm run build
+   - Zorg dat de gecompileerde output (`backend/dist`) aanwezig is.
+
+3. Start backend zodat het de statische frontend serveert:
+   - node backend/dist/index.js
+   - Of gebruik de Startup Command in Azure: `node backend/dist/index.js`
+
+Deployment (Azure — korte aanwijzingen)
+
+- Aanbevolen: gebruik Azure App Service voor de Node backend en serve static frontend via de backend (single artifact), of gebruik Azure Static Web Apps / Storage voor frontend en App Service voor backend.
+- Belangrijke aandachtspunten:
+  - Zorg dat tijdens build de juiste VITE environment variable is ingesteld voor API‑basis-URL: `VITE_API_URL` (gebruik GitHub Secrets in CI).
+  - Startup Command voor App Service (Linux) indien je het ZIP‑artifact deployt: `node backend/dist/index.js`
+  - Deployment Center kan automatisch bouwen; controleer logs in Deployment Center / Kudu als deploy faalt.
+  - Als publish profile niet beschikbaar is (basic auth disabled), gebruik Service Principal / `azure/login` in GitHub Actions of Deployment Center direct via GitHub OAuth.
+
+CI / GitHub Actions (tips)
+
+- Voeg `package-lock.json` toe in backend en frontend voor reproduceerbare builds (maakt `npm ci` betrouwbaar).
+- Geef workflow permissions: `id-token: write` als je OIDC gebruikt met `azure/login`.
+- Voor Linux runners: zorg dat bestandsnamen en import strings exact dezelfde case hebben (case‑sensitivity).
+
+Veelvoorkomende issues & quick fixes
+
+- TypeScript TS2307 “Cannot find module …” in Actions but not locally (Windows):
+  - Meest voorkomende oorzaak: case‑sensitive file name mismatch. Controleer exacte bestandsnamen en imports.
+  - Tijdelijke workaround: `// @ts-ignore` boven importregels — niet aanbevolen als permanente oplossing.
+- "You do not have permission to view this directory or page." in Azure:
+  - Meestal omdat backend process crashed on startup (TS build errors). Inspecteer Log stream & Kudu, fix TS errors, en zorg dat startup command verwijst naar bestaande JS entrypoint.
+- CORS: zet frontend origin in backend CORS config of gebruik `*` tijdelijk tijdens testen.
+
+Project structuur (kort)
 
 ```
-docker-compose up
+mern-onion-app/
+├─ backend/           # TypeScript Express backend (src => dist after build)
+└─ frontendd/         # Vite + React frontend
 ```
-
-### Usage
-
-- Access the frontend application at `http://localhost:3000`.
-- The backend API will be available at `http://localhost:5000/api`.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License.

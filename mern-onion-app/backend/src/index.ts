@@ -1,9 +1,7 @@
 import mongoose from 'mongoose';
-// @ts-ignore: suppress TS2307 for route imports on CI
 import userRoutes from './api/routes/userRoutes';
 import { config } from './config';
 import app from './infrastructure/http/express';
-// @ts-ignore: suppress TS2307 for route imports on CI
 import keuzeModuleRoutes from './api/routes/keuzeModuleRoutes';
 
 const PORT = process.env.PORT || config.port || 5000;

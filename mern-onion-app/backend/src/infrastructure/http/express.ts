@@ -11,7 +11,7 @@ app.disable('x-powered-by');
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || '*', // in productie kun je dit beperken
+  origin: process.env.FRONTEND_ORIGIN || '*', 
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']

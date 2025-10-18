@@ -4,7 +4,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  favorites?: Types.ObjectId[]; // verwijst naar KeuzeModule documenten
+  favorites?: Types.ObjectId[];
 }
 
 const UserSchema: Schema = new Schema({
