@@ -11,95 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Show repo root (debug)
-        run: |
-          echo "PWD: $(pwd)"
-          ls -la
-
-      - name: Locate frontend directory
-        id: find-frontend
-        run: |
-          if [ -d "./frontendd" ]; then
-            echo "frontend=frontendd" >> $GITHUB_OUTPUT
-          else
-            dir=$(find . -maxdepth 4 -type d -name "frontendd" -print -quit)
-            if [ -n "$dir" ]; then
-              dir=${dir#./}
-              echo "frontend=$dir" >> $GITHUB_OUTPUT
-            else
-              echo "No frontendd directory found. Listing repo for diagnosis:"
-              find . -maxdepth 4 -type d -print
-              exit 1
-            fi
-          fi
-
-      - name: Locate backend directory
-        id: find-backend
-        run: |
-          if [ -d "./backend" ]; then
-            echo "backend=backend" >> $GITHUB_OUTPUT
-          else
-            dir=$(find . -maxdepth 4 -type d -name "backend" -print -quit)
-            if [ -n "$dir" ]; then
-              dir=${dir#./}
-              echo "backend=$dir" >> $GITHUB_OUTPUT
-            else
-              echo "No backend directory found. Listing repo for diagnosis:"
-              find . -maxdepth 4 -type d -print
-              exit 1
-            fi
-          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
+      # Frontend build
       - name: Build frontend (Vite)
-        working-directory: ${{ steps.find-frontend.outputs.frontend }}
+        working-directory: ./frontendd
         run: |
-          echo "Building frontend in: $PWD"
           npm ci
-          if [ -z "${VITE_API_URL}" ]; then
-            echo "VITE_API_URL not provided as secret; continuing but check if this is intended"
-          fi
           npm run build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
-      - name: Build backend (TypeScript / Node) - tolerant install
-        working-directory: ${{ steps.find-backend.outputs.backend }}
+      # Backend build
+      - name: Build backend (TypeScript / Node)
+        working-directory: ./backend
         run: |
-          echo "Building backend in: $PWD"
-          # use npm ci when lockfile present, otherwise fallback to npm install
-          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
-            echo "Lockfile found -> using npm ci"
-            npm ci
-          else
-            echo "No lockfile -> using npm install"
-            npm install
-          fi
-          # build if script exists, otherwise continue
-          npm run build || echo "no backend build script or build completed without special step"
+          npm ci
+          npm run build || echo "No backend build step"
 
-      - name: Package site for Azure
-        run: |
-          FRONTEND_DIR=${{ steps.find-frontend.outputs.frontend }}
-          BACKEND_DIR=${{ steps.find-backend.outputs.backend }}
-          echo "Frontend dir: $FRONTEND_DIR"
-          echo "Backend dir: $BACKEND_DIR"
-          if [ ! -d "$FRONTEND_DIR/dist" ]; then
-            echo "frontend build not found at $FRONTEND_DIR/dist"
-            ls -la "$FRONTEND_DIR" || true
-            exit 1
-          fi
-          zip -r deploy.zip "$BACKEND_DIR" "$FRONTEND_DIR"
+      # Package alles samen in één zip
+      - name: Package app
+        run: zip -r deploy.zip backend frontendd
 
+      # ✅ Login bij Azure (met jouw bestaande 3 secrets)
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4D8A43483D3341648FC537BC4E78CF8A }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0BD292A1DF6A4788AB3B7B3E961C653D }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_989797DEE67C42D5900A5CF1AC8BD592 }}
+
+      # ✅ Deploy naar jouw Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          app-name: 'POCAvansLU2'
           package: ./deploy.zip
