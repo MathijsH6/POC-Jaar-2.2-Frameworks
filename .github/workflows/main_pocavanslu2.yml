@@ -70,12 +70,19 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
-      - name: Build backend (TypeScript / Node)
+      - name: Build backend (TypeScript / Node) - tolerant install
         working-directory: ${{ steps.find-backend.outputs.backend }}
         run: |
           echo "Building backend in: $PWD"
-          npm ci
-          # run build if defined, otherwise continue
+          # use npm ci when lockfile present, otherwise fallback to npm install
+          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            echo "Lockfile found -> using npm ci"
+            npm ci
+          else
+            echo "No lockfile -> using npm install"
+            npm install
+          fi
+          # build if script exists, otherwise continue
           npm run build || echo "no backend build script or build completed without special step"
 
       - name: Package site for Azure
@@ -89,7 +96,6 @@ jobs:
             ls -la "$FRONTEND_DIR" || true
             exit 1
           fi
-          # create zip containing backend and frontend build folder
           zip -r deploy.zip "$BACKEND_DIR" "$FRONTEND_DIR"
 
       - name: Deploy to Azure Web App
