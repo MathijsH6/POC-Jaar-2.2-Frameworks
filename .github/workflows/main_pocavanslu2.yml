@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.Net Core app to Azure Web App - POCAvansLU2
+name: Build and deploy Node + Vite app to Azure Web App - POCAvansLU2
 
 on:
   push:
@@ -10,56 +7,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: windows-latest
-    permissions:
-      contents: read #This is required for actions/checkout
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          dotnet-version: '8.x'
+          node-version: '18'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Build frontend (Vite)
+        working-directory: ./frontendd
+        run: |
+          npm ci
+          # VITE_API_URL must be provided as a repo secret (see notes)
+          export VITE_API_URL="${{ secrets.VITE_API_URL }}"
+          npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Build backend (TypeScript)
+        working-directory: ./backend
+        run: |
+          npm ci
+          # run build if present; tolerate absence of build script
+          npm run build || echo "no backend build script, continuing"
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
-
-  deploy:
-    runs-on: windows-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: .net-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4D8A43483D3341648FC537BC4E78CF8A }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_0BD292A1DF6A4788AB3B7B3E961C653D }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_989797DEE67C42D5900A5CF1AC8BD592 }}
+      - name: Package site for Azure
+        run: |
+          # verify frontend build exists
+          if [ ! -d frontendd/dist ]; then echo "frontend build not found at frontendd/dist" && exit 1; fi
+          # create zip with backend + frontend build
+          zip -r deploy.zip backend frontendd
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'POCAvansLU2'
-          slot-name: 'Production'
-          package: .
-          
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./deploy.zip
