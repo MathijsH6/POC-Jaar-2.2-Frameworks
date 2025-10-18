@@ -6,30 +6,58 @@ import cors from 'cors';
 
 const app = express();
 
-// Middleware
-app.use(cors({
-    origin: 'http://localhost:5174', // je frontend origin
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
-}));
-app.options('*', cors()); // respond to preflight
+// Basic middleware
+app.disable('x-powered-by');
 app.use(json());
 app.use(urlencoded({ extended: true }));
+app.use(cors({
+  origin: process.env.FRONTEND_ORIGIN || '*', // in productie kun je dit beperken
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
+}));
 
-// Serve frontend build (if present) so backend + frontend kunnen samen op één host draaien.
-// Looks for: <repo-root>/frontendd/dist by default, or use env FRONTEND_DIST to override.
-const frontendDist = process.env.FRONTEND_DIST || path.join(process.cwd(), 'frontendd', 'dist');
-if (fs.existsSync(frontendDist)) {
-  app.use(express.static(frontendDist));
-  // return index.html for all non-API routes (client-side routing)
+// Detect frontend build folder (tries several common locations including Azure wwwroot)
+const candidates = [
+  process.env.FRONTEND_DIST,                                  // explicit override
+  path.join(process.cwd(), 'frontendd', 'dist'),              // typical local/vite output in your repo
+  path.join(process.cwd(), 'frontend', 'dist'),               // alternative common name
+  path.join(process.env.HOME || '', 'site', 'wwwroot'),       // Azure App Service wwwroot
+  path.join(process.cwd(), 'wwwroot'),                        // sometimes used in deployments
+  process.cwd(),                                              // last resort: current working dir
+].filter(Boolean) as string[];
+
+let frontendDist: string | undefined;
+for (const c of candidates) {
+  if (c && fs.existsSync(c) && fs.statSync(c).isDirectory()) {
+    // ensure index.html exists
+    const indexPath = path.join(c, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      frontendDist = c;
+      break;
+    }
+  }
+}
+
+if (frontendDist) {
+  console.info('[express] serving static frontend from', frontendDist);
+  // Serve static assets
+  app.use(express.static(frontendDist, { index: false, extensions: ['html', 'js', 'css'] }));
+
+  // Ensure client-side routing works: return index.html for non-API GET requests
   app.get('*', (req, res, next) => {
-    // only serve index.html for non-API requests
+    if (req.method !== 'GET') return next();
     if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(frontendDist, 'index.html'));
+    const indexFile = path.join(frontendDist!, 'index.html');
+    if (fs.existsSync(indexFile)) {
+      res.sendFile(indexFile);
+    } else {
+      next();
+    }
   });
 } else {
-  console.warn('[express] frontend build not found at', frontendDist, '- skipping static serving');
+  console.warn('[express] frontend build not found in any candidate paths:', candidates);
+  console.warn('[express] skip static serving - ensure FRONTEND_DIST or deployment layout is correct');
 }
 
 // central error handler (consistent JSON responses)
