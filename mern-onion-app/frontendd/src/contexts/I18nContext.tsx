@@ -64,6 +64,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'compare.reset': 'Reset',
     'compare.done': 'Klaar',
     'compare.remove_from_favorites': 'Verwijder uit favorieten',
+    'compare.info': 'Meer info',
     'favorites.empty': 'Geen favorieten',
 
     'loading': 'Loading...',
@@ -150,6 +151,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'compare.reset': 'Reset',
     'compare.done': 'Done',
     'compare.remove_from_favorites': 'Remove from favorites',
+    'compare.info': 'More info',
     'favorites.empty': 'No favorites',
 
     'loading': 'Loading...',
